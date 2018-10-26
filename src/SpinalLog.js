@@ -2,7 +2,7 @@ const spinalCore = require("spinal-core-connectorjs");
 const globalType = typeof window === "undefined" ? global : window;
 import {
   Utilities
-} from "../Utilities.js";
+} from "./Utilities";
 import SpinalEndpoint from "./SpinalEndpoint";
 /**
  * @class SpinalLog

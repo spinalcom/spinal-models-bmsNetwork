@@ -3,7 +3,7 @@ const globalType = typeof window === "undefined" ? global : window;
 
 import {
   Utilities
-} from "../Utilities.js";
+} from "./Utilities";
 /**
  *
  *
