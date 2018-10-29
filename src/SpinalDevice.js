@@ -22,7 +22,9 @@ class SpinalDevice extends globalType.Model {
    * @memberof SpinalDevice
    */
   constructor(_name = "", path = "", type, protocolType, ipAddress =
-    "127.0.0.1", name = "SpinalDevice") {
+    "127.0.0.1",
+    name =
+    "SpinalDevice") {
     super();
     if (FileSystem._sig_server) {
       this.add_attr({
@@ -31,9 +33,10 @@ class SpinalDevice extends globalType.Model {
         path: path,
         type: new Choice(0, ["Sensor", "Router", "Actuator"]),
         protocolType: protocolType,
-        ipAddress: ipAddress,
-        type: type || ""
+        ipAddress: ipAddress
       });
+      if (typeof type !== "undefined")
+        this.type.set(type);
     }
   }
 

@@ -1,7 +1,14 @@
 const spinalCore = require("spinal-core-connectorjs");
 const globalType = typeof window === "undefined" ? global : window;
 
-import Utilities from "./Utilities";
+import {
+  Utilities
+} from "./Utilities";
+
+import SpinalDevice from "./SpinalDevice";
+import SpinalEndpoint from "./SpinalEndpoint";
+
+var csv = require("fast-csv");
 
 /**
  *
@@ -17,7 +24,7 @@ class SpinalNetwork extends globalType.Model {
    * @param {string} [host=""]
    * @param {string} [user=""]
    * @param {string} [password=""]
-   * @param {Model} [options=new Ptr(0)] - mod_attr to change it
+   * @param {Ptr} [options=new Model] - mod_attr to change it
    * @param {string} [name="SpinalNetwork"]
    * @memberof SpinalNetwork
    */
@@ -27,15 +34,13 @@ class SpinalNetwork extends globalType.Model {
     if (FileSystem._sig_server) {
       this.add_attr({
         id: Utilities.guid(this.constructor.name),
-        name: typeof settings.networkName != "undefined" ? settings.networkName :
-          new Error('Network name not defined in config.js'),
-        type: typeof settings.type != "undefined" ? settings.type : new Error(
-          'Network type not defined in config.js'),
+        name: typeof settings.networkName != "undefined" ? settings.networkName : 'virtualNetwork',
+        type: typeof settings.type != "undefined" ? settings.type : '',
         host: typeof settings.host != "undefined" ? settings.host : '',
         user: typeof settings.user != "undefined" ? settings.user : '',
         password: typeof settings.password != "undefined" ? settings.password :
           '',
-        options: settings
+        options: new Model(settings)
       });
     }
   }
@@ -84,9 +89,7 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  read(endpointId, options) {
-
-  }
+  read(){}
 
   /**
    * Writes the value to an endpoint
@@ -146,5 +149,125 @@ class SpinalNetwork extends globalType.Model {
 
 }
 
-module.exports = SpinalNetwork;
+
 spinalCore.register_models([SpinalNetwork])
+module.exports = SpinalNetwork;
+
+
+/*************************************************
+ * FAKE SPECIFIC FUNCTIONS - NOT PART OF THE LIB *
+ *************************************************/
+
+const DATA_TYPES = ['DateTime', 'Boolean', 'String', 'Double', 'Long',
+  'Integer', 'Duration'
+]
+let sensorTypes = {
+    Temperature: {
+      name: "Temperature",
+      unit: "°C",
+      dataType: "Double",
+      min: "0",
+      max: "30"
+    },
+    Switch: {
+      name: "Switch",
+      unit: "Power",
+      dataType: "Boolean",
+      min: "0",
+      max: "2"
+    }
+  },
+  sensorKeys = ["Temperature", "Switch"]
+
+// csv
+//   .fromPath('sensorTemplates.csv', {
+//     delimiter: ','
+//   })
+//   .on("data", function(data) {
+//     let s = {
+//       name: data[0],
+//       unit: data[1],
+//       dataType: data[2]
+//     }
+
+//     s.min = typeof data[3] != "undefined" ? data[3] : undefined;
+//     s.max = typeof data[4] != "undefined" ? data[4] : undefined;
+
+//     sensorTypes[s.name] = s
+//     sensorKeys.push(s.name);
+//   });
+
+
+function createFakeContainer(index, totalEndpoints) {
+
+  let endpoints = [];
+
+  for (var i = 0; i < totalEndpoints; i++) {
+    endpoints.push(createFakeEndpoint(index, i));
+  }
+
+  let device = new SpinalDevice('Device ' + index, 'Device-' + index);
+
+  return {
+    device: device,
+    endpoints: endpoints
+  }
+}
+
+function createFakeEndpoint(deviceIndex, index) {
+  var num = parseInt('' + deviceIndex + index);
+
+  let sensorType = sensorTypes[sensorKeys[Math.floor((Math.random() * 2) + 0)]]
+
+  let endpoint = new SpinalEndpoint(
+    'Endpoint ' + deviceIndex + '_' + index,
+    'Endpoint-' + deviceIndex + '_' + index + '_' + sensorType.name,
+    parseValue(Math.floor((Math.random() * sensorType.max) + sensorType.min),
+      sensorType.dataType),
+    sensorType.unit,
+    sensorType.dataType
+  );
+
+  return endpoint;
+}
+
+function createFakeValues(endpointIds) {
+
+  let endpointObjs = [];
+
+  for (var i = 0; i < endpointIds.length; i++) {
+
+    let sensorType = sensorTypes[endpointIds[i].split('_')[2]]
+
+    let val = parseValue(Math.floor((Math.random() * sensorType.max) +
+      sensorType.min), sensorType.dataType);
+
+    endpointObjs.push({
+      path: endpointIds[i],
+      value: val
+    });
+
+  }
+
+  return endpointObjs;
+}
+
+function parseValue(value, dataType) {
+  if (dataType == DATA_TYPES['Boolean'])
+    return value == 'True'
+
+  if (dataType == DATA_TYPES['Long'] || dataType == DATA_TYPES['Double'])
+    if (value == null)
+      value = 0
+  return parseFloat(value)
+
+  if (dataType == DATA_TYPES['Integer']) {
+    if (value == null)
+      value = 0
+    return parseInt(value)
+  }
+
+  if (value == null)
+    value = "null"
+  return value
+}

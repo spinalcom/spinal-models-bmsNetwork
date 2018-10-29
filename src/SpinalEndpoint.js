@@ -41,9 +41,7 @@ class SpinalEndpoint extends globalType.Model {
         path: path,
         currentValue: currentValue,
         unit: unit,
-        dataType: dataType ? dataType : new Choice(0, ["Null",
-          "Boolean",
-          "Unsigned",
+        dataType: new Choice(0, ["Null", "Boolean", "Unsigned",
           "Unsigned8", "Unsigned16", "Unsigned32", "Integer",
           "Integer16", "Real", "Double", "OctetString",
           "CharacterString", "BitString", "Enumerated", "Date",
@@ -57,19 +55,17 @@ class SpinalEndpoint extends globalType.Model {
           value: max,
           active: false
         },
-        alarmType: alarmType ? alarmType : new Choice(1, ["min",
-          "normal", "max"
-        ]),
+        alarmType: new Choice(1, ["min", "normal", "max"]),
         oldAlarmType: oldAlarmType,
         dataNature: dataNature,
         currentLog: new Model()
       });
 
-      // if (typeof dataType !== "undefined")
-      //   this.dataType.set(dataType);
+      if (typeof dataType !== "undefined")
+        this.dataType.set(dataType);
 
-      // if (typeof alarmType !== "undefined")
-      //   this.dataType.set(alarmType);
+      if (typeof alarmType !== "undefined")
+        this.dataType.set(alarmType);
     }
   }
 }
