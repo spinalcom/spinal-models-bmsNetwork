@@ -132,15 +132,6 @@ module.exports = SpinalNetwork;
  * FAKE SPECIFIC FUNCTIONS - NOT PART OF THE LIB *
  *************************************************/
 
-var networkConnector = {
-  networkName: "VirtualNetwork",
-  appName: "VirtualNetworkContext",
-  type: "MyFakeProtocol",
-  path: "/VirtualNetwork",
-  virtualDevices: 5,
-  endpointsPerDevice: 3,
-  updateInterval: 1000
-};
 
 const DATA_TYPES = [
   "DateTime",
