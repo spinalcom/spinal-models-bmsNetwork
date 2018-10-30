@@ -2,14 +2,10 @@ const spinalCore = require("spinal-core-connectorjs");
 const globalType = typeof window === "undefined" ? global : window;
 
 import {
-  Utilities
+  guid
 } from "./Utilities";
-/**
- *
- *
- * @class SpinalDevice
- * @extends {globalType.Model}
- */
+
+
 class SpinalDevice extends globalType.Model {
   /**
    *Creates an instance of SpinalDevice.
@@ -28,7 +24,7 @@ class SpinalDevice extends globalType.Model {
     super();
     if (FileSystem._sig_server) {
       this.add_attr({
-        id: Utilities.guid(this.constructor.name),
+        id: guid(this.constructor.name),
         name: _name,
         path: path,
         type: new Choice(0, ["Sensor", "Router", "Actuator"]),

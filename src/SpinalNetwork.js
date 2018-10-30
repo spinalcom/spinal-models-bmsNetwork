@@ -1,23 +1,14 @@
-const spinalCore = require("spinal-core-connectorjs");
+import spinalCore from "spinal-core-connectorjs";
+import { promiseLoad, guid } from "./Utilities";
 const globalType = typeof window === "undefined" ? global : window;
-
-import {
-  Utilities
-} from "./Utilities";
 
 import SpinalDevice from "./SpinalDevice";
 import SpinalEndpoint from "./SpinalEndpoint";
 
-var csv = require("fast-csv");
+// var csv = require("fast-csv");
 
-/**
- *
- *
- * @class SpinalNetwork
- * @extends {globalType.Model}
- */
 class SpinalNetwork extends globalType.Model {
-  /**
+  /** 
    *Creates an instance of SpinalNetwork.
    * @param {string} [_name=""]
    * @param {string} [type=""]
@@ -33,14 +24,17 @@ class SpinalNetwork extends globalType.Model {
 
     if (FileSystem._sig_server) {
       this.add_attr({
-        id: Utilities.guid(this.constructor.name),
-        name: typeof settings.networkName != "undefined" ? settings.networkName : 'virtualNetwork',
-        type: typeof settings.type != "undefined" ? settings.type : '',
-        host: typeof settings.host != "undefined" ? settings.host : '',
-        user: typeof settings.user != "undefined" ? settings.user : '',
-        password: typeof settings.password != "undefined" ? settings.password :
-          '',
-        options: new Model(settings)
+        id: guid(this.constructor.name),
+        name:
+          typeof settings.networkName != "undefined"
+            ? settings.networkName
+            : "virtualNetwork",
+        type: typeof settings.type != "undefined" ? settings.type : "",
+        host: typeof settings.host != "undefined" ? settings.host : "",
+        user: typeof settings.user != "undefined" ? settings.user : "",
+        password:
+          typeof settings.password != "undefined" ? settings.password : "",
+        options: new globalType.Ptr(new Model(settings))
       });
     }
   }
@@ -49,17 +43,13 @@ class SpinalNetwork extends globalType.Model {
    * Connects to the network if it's necessary to have a persistent session
    * @memberof SpinalNetwork
    */
-  connect() {
-
-  }
+  connect() {}
 
   /**
    * Disconnects of the network if previously signed in
    * @memberof SpinalNetwork
    */
-  disconnect() {
-
-  }
+  disconnect() {}
 
   /**
    * Returns a container of SpinalDevices and SpinalEndpoints
@@ -67,20 +57,23 @@ class SpinalNetwork extends globalType.Model {
    * @memberof SpinalNetwork
    */
   discover(options) {
-
-    let total = this.options.virtualDevices
+    
 
     return new Promise((res, rej) => {
 
-      let containers = []
+      this.options.load((el) => {
+        let containers = [];
+        let total = el.virtualDevices.get();
+        for (var i = 0; i < total; i++)
+        containers.push(
+          createFakeContainer(i, el.endpointsPerDevice)
+        );
 
-      for (var i = 0; i < total; i++)
-        containers.push(createFakeContainer(i, this.options.endpointsPerDevice))
+      res(containers);
+      })
 
-      res(containers)
-
-    })
-
+      
+    });
   }
 
   /**
@@ -89,7 +82,7 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  read(){}
+  read() {}
 
   /**
    * Writes the value to an endpoint
@@ -97,9 +90,7 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  write(endpointId, options) {
-
-  }
+  write(endpointId, options) {}
 
   /**
    * Returns a SpinalDevice
@@ -107,9 +98,7 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  getDevice(deviceId, options) {
-
-  }
+  getDevice(deviceId, options) {}
 
   /**
    * Returns an SpinalEndpoint
@@ -117,9 +106,7 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  getEndpoint(endpointId, options) {
-
-  }
+  getEndpoint(endpointId, options) {}
 
   /**
    * Invoces a callback when new events arrive
@@ -128,13 +115,11 @@ class SpinalNetwork extends globalType.Model {
    * @memberof SpinalNetwork
    */
   subscribe(endpontIds, callback, options) {
-
     // TODO: from endpointList generate endpoints with Id and Value
 
     setInterval(() => {
-      callback(createFakeValues(endpontIds))
+      callback(createFakeValues(endpontIds));
     }, this.options.updateInterval);
-
   }
 
   /**
@@ -143,24 +128,38 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  unsubscribe(endpointList, options) {
-
-  }
-
+  unsubscribe(endpointList, options) {}
 }
 
-
-spinalCore.register_models([SpinalNetwork])
+spinalCore.register_models([SpinalNetwork]);
 module.exports = SpinalNetwork;
-
 
 /*************************************************
  * FAKE SPECIFIC FUNCTIONS - NOT PART OF THE LIB *
  *************************************************/
 
-const DATA_TYPES = ['DateTime', 'Boolean', 'String', 'Double', 'Long',
-  'Integer', 'Duration'
-]
+var networkConnector = {
+  networkName: 'VirtualNetwork',
+  appName: 'VirtualNetworkContext',
+  type: 'MyFakeProtocol',
+  path: '/VirtualNetwork',
+  virtualDevices: 5,
+  endpointsPerDevice: 3,
+  updateInterval: 1000
+}
+
+
+
+
+const DATA_TYPES = [
+  "DateTime",
+  "Boolean",
+  "String",
+  "Double",
+  "Long",
+  "Integer",
+  "Duration"
+];
 let sensorTypes = {
     Temperature: {
       name: "Temperature",
@@ -177,7 +176,7 @@ let sensorTypes = {
       max: "2"
     }
   },
-  sensorKeys = ["Temperature", "Switch"]
+  sensorKeys = ["Temperature", "Switch"];
 
 // csv
 //   .fromPath('sensorTemplates.csv', {
@@ -197,33 +196,33 @@ let sensorTypes = {
 //     sensorKeys.push(s.name);
 //   });
 
-
 function createFakeContainer(index, totalEndpoints) {
-
   let endpoints = [];
 
   for (var i = 0; i < totalEndpoints; i++) {
     endpoints.push(createFakeEndpoint(index, i));
   }
 
-  let device = new SpinalDevice('Device ' + index, 'Device-' + index);
+  let device = new SpinalDevice("Device " + index, "Device-" + index);
 
   return {
     device: device,
     endpoints: endpoints
-  }
+  };
 }
 
 function createFakeEndpoint(deviceIndex, index) {
-  var num = parseInt('' + deviceIndex + index);
+  var num = parseInt("" + deviceIndex + index);
 
-  let sensorType = sensorTypes[sensorKeys[Math.floor((Math.random() * 2) + 0)]]
+  let sensorType = sensorTypes[sensorKeys[Math.floor(Math.random() * 2 + 0)]];
 
   let endpoint = new SpinalEndpoint(
-    'Endpoint ' + deviceIndex + '_' + index,
-    'Endpoint-' + deviceIndex + '_' + index + '_' + sensorType.name,
-    parseValue(Math.floor((Math.random() * sensorType.max) + sensorType.min),
-      sensorType.dataType),
+    "Endpoint " + deviceIndex + "_" + index,
+    "Endpoint-" + deviceIndex + "_" + index + "_" + sensorType.name,
+    parseValue(
+      Math.floor(Math.random() * sensorType.max + sensorType.min),
+      sensorType.dataType
+    ),
     sensorType.unit,
     sensorType.dataType
   );
@@ -232,42 +231,37 @@ function createFakeEndpoint(deviceIndex, index) {
 }
 
 function createFakeValues(endpointIds) {
-
   let endpointObjs = [];
 
   for (var i = 0; i < endpointIds.length; i++) {
+    let sensorType = sensorTypes[endpointIds[i].split("_")[2]];
 
-    let sensorType = sensorTypes[endpointIds[i].split('_')[2]]
-
-    let val = parseValue(Math.floor((Math.random() * sensorType.max) +
-      sensorType.min), sensorType.dataType);
+    let val = parseValue(
+      Math.floor(Math.random() * sensorType.max + sensorType.min),
+      sensorType.dataType
+    );
 
     endpointObjs.push({
       path: endpointIds[i],
       value: val
     });
-
   }
 
   return endpointObjs;
 }
 
 function parseValue(value, dataType) {
-  if (dataType == DATA_TYPES['Boolean'])
-    return value == 'True'
+  if (dataType == DATA_TYPES["Boolean"]) return value == "True";
 
-  if (dataType == DATA_TYPES['Long'] || dataType == DATA_TYPES['Double'])
-    if (value == null)
-      value = 0
-  return parseFloat(value)
+  if (dataType == DATA_TYPES["Long"] || dataType == DATA_TYPES["Double"])
+    if (value == null) value = 0;
+  return parseFloat(value);
 
-  if (dataType == DATA_TYPES['Integer']) {
-    if (value == null)
-      value = 0
-    return parseInt(value)
+  if (dataType == DATA_TYPES["Integer"]) {
+    if (value == null) value = 0;
+    return parseInt(value);
   }
 
-  if (value == null)
-    value = "null"
-  return value
+  if (value == null) value = "null";
+  return value;
 }
