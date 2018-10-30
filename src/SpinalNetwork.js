@@ -8,7 +8,7 @@ import SpinalEndpoint from "./SpinalEndpoint";
 // var csv = require("fast-csv");
 
 class SpinalNetwork extends globalType.Model {
-  /** 
+  /**
    *Creates an instance of SpinalNetwork.
    * @param {string} [_name=""]
    * @param {string} [type=""]
@@ -57,22 +57,15 @@ class SpinalNetwork extends globalType.Model {
    * @memberof SpinalNetwork
    */
   discover(options) {
-    
-
     return new Promise((res, rej) => {
-
-      this.options.load((el) => {
+      this.options.load(el => {
         let containers = [];
         let total = el.virtualDevices.get();
         for (var i = 0; i < total; i++)
-        containers.push(
-          createFakeContainer(i, el.endpointsPerDevice)
-        );
+          containers.push(createFakeContainer(i, el.endpointsPerDevice));
 
-      res(containers);
-      })
-
-      
+        res(containers);
+      });
     });
   }
 
@@ -114,12 +107,13 @@ class SpinalNetwork extends globalType.Model {
    * @param {object} [options]
    * @memberof SpinalNetwork
    */
-  subscribe(endpontIds, callback, options) {
+  subscribe(endpontIds, callback) {
     // TODO: from endpointList generate endpoints with Id and Value
-
-    setInterval(() => {
-      callback(createFakeValues(endpontIds));
-    }, this.options.updateInterval);
+    this.options.load(el => {
+      setInterval(() => {
+        callback(createFakeValues(endpontIds));
+      }, el.updateInterval);
+    });
   }
 
   /**
@@ -139,17 +133,14 @@ module.exports = SpinalNetwork;
  *************************************************/
 
 var networkConnector = {
-  networkName: 'VirtualNetwork',
-  appName: 'VirtualNetworkContext',
-  type: 'MyFakeProtocol',
-  path: '/VirtualNetwork',
+  networkName: "VirtualNetwork",
+  appName: "VirtualNetworkContext",
+  type: "MyFakeProtocol",
+  path: "/VirtualNetwork",
   virtualDevices: 5,
   endpointsPerDevice: 3,
   updateInterval: 1000
-}
-
-
-
+};
 
 const DATA_TYPES = [
   "DateTime",
