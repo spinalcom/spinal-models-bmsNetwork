@@ -1,6 +1,6 @@
 {
   "name": "spinal-models-bmsNetwork",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -9,9 +9,9 @@
     "build": "babel src -d  build -s inline"
   },
   "devDependencies": {
-    "@babel/cli": "^7.1.2",
-    "@babel/core": "^7.1.2",
-    "@babel/preset-env": "^7.1.0",
+    "@babel/cli": "^6.26.3",
+    "@babel/core": "^6.26.3",
+    "@babel/preset-env": "^6.2.0",
     "jsdoc-to-markdown": "^4.0.1",
     "spinal-core-connectorjs": "git+https://github.com/spinalcom/spinal-core-connectorjs.git"
   },
